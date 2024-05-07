@@ -1,19 +1,25 @@
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
-import tuning_interpretation as ti #This will be the hyperparameter tuning part of the project (tuning_interpretation.py)
-import pre_processing as pp #This will be the pre-processing part of the project (pre_processing.py)
+import matplotlib.pyplot as plt
+#import tuning_interpretation as ti #This will be the hyperparameter tuning part of the project (tuning_interpretation.py)
+#NOT NECESSARY FOR NOW
+import preprocessing as pp #This will be the pre-processing part of the project (pre_processing.py)
 
 def load_data():
     
-    dataset = pp.dataset()
+    preprocessor = pp.DataPreprocessor(movies_data_path='tmdb_5000_movies.csv', 
+                                       credits_data_path='tmdb_5000_credits.csv', 
+                                       reference_year=2024)
+    preprocessor.load_data()
+    dataset = preprocessor.preprocess()
     return dataset
 
 
 def split_data(dataset):
    
-    X = dataset.iloc[:, :-1].values #all values except last column
-    y = dataset.iloc[:, -1].values  #values of last column which is dependent attribute
+    X = dataset.iloc[:, :-1].values #all values except last column (budget - popularity - runtime - vote_average - vote_count - age)
+    y = dataset.iloc[:, -1].values  #values of last column which is dependent attribute(revenue)
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
     return X_train, X_test, y_train, y_test
@@ -43,3 +49,14 @@ if __name__ == "__main__":
     # Evaluating the model with mse
     mse = evaluate_model(model, X_test, y_test)
     print("Mean Squared Error:", mse)
+
+    y_pred = model.predict(X_test)
+    
+    # Plot predicted vs actual revenue
+    plt.figure(figsize=(8, 6))
+    plt.scatter(y_test, y_pred, color='blue')
+    plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], color='red')  # Diagonal line
+    plt.xlabel('Actual Revenue')
+    plt.ylabel('Predicted Revenue')
+    plt.title('Actual vs Predicted Revenue')
+    plt.show()
