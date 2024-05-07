@@ -21,18 +21,16 @@ class DataPreprocessor:
         # Convert release_date to year
         self.movies_data['release_date'] = pd.to_datetime(self.movies_data['release_date']).dt.year
         
-    def prepare_X(self):
-        if self.movies_data is None:
-            raise ValueError("Data not loaded. Call load_data() first.")
-        
+    def preprocess(self):
         # List of basic features
-        base = ['budget', 'popularity', 'revenue', 'runtime', 'vote_average', 'vote_count']
+        base = ['budget', 'popularity', 'runtime', 'vote_average', 'vote_count']
 
         # Calculate age of movies
         self.movies_data['age'] = self.reference_year - self.movies_data['release_date']
-        
+
+        # Remove rows where revenue is 0 (we dont want any outliers)
+        self.movies_data = self.movies_data[self.movies_data['revenue'] != 0]
         # Extract numerical features
-        features = base + ['age']
+        features = base + ['age', 'revenue'] #New dataset -> budget - popularity - runtime - vote_average - vote_count - age - revenue(our target)
         df_num = self.movies_data[features].fillna(0)
-        X = df_num.values
-        return X
+        return df_num
